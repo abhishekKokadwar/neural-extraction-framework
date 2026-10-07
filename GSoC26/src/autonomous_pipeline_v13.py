@@ -1033,7 +1033,10 @@ def _context_variants(mention, sentence):
         for n in names[:6]:
             out.append(f"{m} ({n} {k})")
         out.append(f"{m} ({k})")
-    return out[:16]
+    # Bare-name qualifiers need no kind trigger: "Ardmore Airport in New
+    # Zealand" -> "Ardmore Airport (New Zealand)". Appended after the cap so
+    # every kind variant above is emitted exactly as before.
+    return out[:16] + [f"{m} ({n})" for n in names[:6]]
 
 
 def node_2_fetcher(state: GraphState):
