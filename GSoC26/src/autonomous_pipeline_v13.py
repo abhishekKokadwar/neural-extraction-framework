@@ -1138,7 +1138,13 @@ def node_2_fetcher(state: GraphState):
                     hits = _sf_lookup(var, k=2) or []
                 except Exception:
                     hits = []
+                # A bare-name variant exists to reach a qualified sense. A hit
+                # without one is a redirect to some other page ("English
+                # language (United States)" -> American_English): drop it.
+                bare_name = re.split(r"[ (]", var[:-1])[-1] not in _QUAL_KIND_TRIGGERS
                 for local_name, score in hits:
+                    if bare_name and not local_name.endswith(")"):
+                        continue
                     uri = f"http://dbpedia.org/resource/{local_name}"
                     if uri in seen:
                         continue
