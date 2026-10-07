@@ -114,7 +114,9 @@ def main():
                     stripped = dict(gt, **{field: base})
                     if normalize_triple(stripped["sub"], stripped["rel"],
                                         stripped["obj"]) in pred:
-                        in_sentence = qual.replace("_", " ").lower() in sentence.lower()
+                        in_sentence = re.search(
+                            rf"\b{re.escape(qual.replace('_', ' '))}\b",
+                            sentence, re.I) is not None
                         reached = generated(surface(base), sentence,
                                             surface(gt[field])) is not None
                         missing.append((domain, idx, field, base, gt[field],
@@ -124,11 +126,12 @@ def main():
                 correct = normalize_triple(pt["sub"], pt["rel"], pt["obj"]) in gold
                 for field in ("sub", "obj"):
                     m = QUAL_RE.match(str(pt[field]))
-                    if correct and not m:
+                    if correct:
                         # an entity the frozen run already resolves: every
                         # bare-name variant for it is a chance to regress
+                        base = m.group(1) if m else pt[field]
                         exposure.update(
-                            v for v in context_variants(surface(pt[field]), sentence)
+                            v for v in context_variants(surface(base), sentence)
                             if is_bare_name(v))
                     if correct or not m:
                         continue
